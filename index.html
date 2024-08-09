@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower of Hanoi - Improved Drag and Drop</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to right, #e0e0e0, #ffffff);
+            margin: 0;
+            height: 100vh;
+        }
+
+        .navbar {
+            width: 100%;
+        }
+
+        .info {
+            margin: 20px;
+            font-size: 1.2rem;
+        }
+
+        .tower-container {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+        }
+
+        .tower {
+            width: 120px;
+            height: 300px;
+            background: linear-gradient(to top, #ffffff, #f0f0f0);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            position: relative;
+        }
+
+        .peg {
+            width: 10px;
+            height: 100%;
+            background: #333;
+            position: absolute;
+            bottom: 0;
+        }
+
+        .ring {
+            height: 30px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: #388e3c;
+        }
+
+        .modal-content {
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .modal-content button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-light">
+        <a class="navbar-brand" href="#">Tower of Hanoi</a>
+        <button class="btn btn-info ml-auto" onclick="showHelp()">Show Help</button>
+    </nav>
+    <div class="info">
+        <p>Steps taken: <span id="stepCounter">0</span></p>
+        <p>Number of rings: 
+            <input type="number" id="ringCount" value="3" min="1" onchange="updateRings()">
+        </p>
+    </div>
+    <div class="tower-container">
+        <div class="tower" id="towerA" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <div class="peg"></div>
+        </div>
+        <div class="tower" id="towerB" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <div class="peg"></div>
+        </div>
+        <div class="tower" id="towerC" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <div class="peg"></div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="helpModalLabel">Help</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>The goal of this game is to move all rings from Pole A to Pole C, using Pole B as an auxiliary pole. You can only move one ring at a time and a larger ring cannot be placed on top of a smaller ring. Try to complete the game in the fewest number of moves.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Back to Game</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Win Modal -->
+    <div class="modal fade" id="winModal" tabindex="-1" role="dialog" aria-labelledby="winModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="winModalLabel">Congratulations!</h5>
+
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Congratulations! You won in <span id="moveCount">0</span> moves.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="restartGame()">Play Again</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validation Modal -->
+    <div class="modal fade" id="validationModal" tabindex="-1" role="dialog" aria-labelledby="validationModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="validationModalLabel">Invalid Number of Rings</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>You cannot select more than 12 rings. Please choose a number between 1 and 12.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        
+        
+        let stepCount = 0;
+let rings = [];
+const towerA = document.getElementById('towerA');
+const towerB = document.getElementById('towerB');
+const towerC = document.getElementById('towerC');
+
+function allowDrop(event) {
+    event.preventDefault();
+}
+
+function drag(event) {
+    const ringId = event.target.id;
+    const towerId = event.target.parentElement.id;
+    const tower = document.getElementById(towerId);
+    const rings = tower.getElementsByClassName('ring');
+    const topRing = rings[rings.length - 1];
+
+    if (event.target === topRing) {
+        event.dataTransfer.setData("text", ringId);
+    } else {
+        event.preventDefault();
+    }
+}
+
+function drop(event) {
+    event.preventDefault();
+    const ringId = event.dataTransfer.getData("text");
+    const ring = document.getElementById(ringId);
+    let targetTower;
+
+    if (event.target.classList.contains('peg') || event.target.classList.contains('tower')) {
+        targetTower = event.target.closest('.tower');
+    } else if (event.target.classList.contains('ring')) {
+        targetTower = event.target.parentElement;
+    }
+
+    if (targetTower) {
+        const ringsInTargetTower = targetTower.getElementsByClassName('ring');
+        const isValidMove = ringsInTargetTower.length === 0 || ring.clientWidth < ringsInTargetTower[ringsInTargetTower.length - 1].clientWidth;
+
+        if (isValidMove) {
+            targetTower.appendChild(ring);
+            ring.style.position = 'relative';
+            ring.style.left = '0';
+            stepCount++;
+            document.getElementById('stepCounter').innerText = stepCount;
+            checkWin();
+        }
+    }
+}
+
+function checkWin() {
+    const ringsInTowerC = towerC.getElementsByClassName('ring');
+    
+    if (ringsInTowerC.length === rings.length) {
+        document.getElementById('moveCount').innerText = stepCount;
+        $('#winModal').modal('show');
+    }
+}
+
+function showHelp() {
+    $('#helpModal').modal('show');
+}
+
+function restartGame() {
+    const currentRings = document.querySelectorAll('.ring');
+    currentRings.forEach(ring => ring.remove());
+
+    const ringCount = parseInt(document.getElementById('ringCount').value);
+    initializeGame(ringCount);
+
+    $('#winModal').modal('hide');
+    stepCount = 0;
+    document.getElementById('stepCounter').innerText = stepCount;
+}
+
+function updateRings() {
+    const ringCount = parseInt(document.getElementById('ringCount').value);
+
+    if (ringCount > 12) {
+        $('#validationModal').modal('show');
+        document.getElementById('ringCount').value = 3; // Reset to default value
+    } else {
+        restartGame(ringCount);
+    }
+}
+
+function initializeGame(count) {
+    rings = [];
+    const colors = ['#ff6347', '#4682b4', '#32cd32', '#ff4500', '#6a5acd', '#3cb371'];
+    
+    towerA.innerHTML = '<div class="peg"></div>';
+    towerB.innerHTML = '<div class="peg"></div>';
+    towerC.innerHTML = '<div class="peg"></div>';
+
+    for (let i = 0; i < count; i++) {
+        const ring = document.createElement('div');
+        ring.className = `ring ring${i+1}`;
+        ring.id = `ring${i+1}`;
+        ring.style.width = `${50 + 20 * i}px`;
+        ring.style.backgroundColor = colors[i % colors.length];
+        ring.draggable = true;
+        ring.ondragstart = drag;
+        rings.push(ring);
+    }
+
+    rings.reverse().forEach(ring => towerA.appendChild(ring));
+}
+
+// Initialize game with default 3 rings on page load
+initializeGame(3);
+
+
+</script>
+</html>
